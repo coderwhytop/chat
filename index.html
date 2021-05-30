@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>websocket</title>
+    <!-- 这样就加载socket.io-client,socket.io-client暴露了一个全局io变量，然后连接服务器
+         我们发现我们在调用io的时候，没有指定任何的url，因为它默认连接当前页面的主机 -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/jquery@3.6.0/dist/jquery.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #e9545457;
+        }
+
+        #chat {
+            width: 800px;
+            height: 600px;
+            background: #fff;
+            margin: 100px auto;
+            position: relative;
+        }
+
+        #chat .title {
+            line-height: 50px;
+            text-align: center;
+            background: #3DA1FE;
+            color: #fff;
+        }
+
+        #chat .chat-cont {
+            display: flex;
+            height: 511px;
+        }
+
+        #message {
+            width: 70%;
+            list-style-type: none;
+        }
+
+        #message #message-title {
+            text-align: center;
+            font-size: 12px;
+            line-height: 24px;
+            color: #333;
+        }
+
+        #message li {
+            padding: 5px 10px;
+        }
+
+        #message li .name {
+            line-height: 30px;
+        }
+
+        #message li .msg {
+            line-height: 40px;
+            text-indent: 40px;
+            background: #3DA1FE;
+            border-radius: 20px;
+        }
+
+        #message li:nth-child(odd) {
+            background: #eee;
+        }
+
+        #user {
+            width: 30%;
+            line-height: 40px;
+            text-align: center;
+            color: #333;
+            border-left: 1px solid #000;
+        }
+
+        form {
+            background: #000;
+            width: 70%;
+            display: flex;
+            position: absolute;
+            bottom: 0;
+        }
+
+        form input {
+            width: 90%;
+            padding: 10px;
+        }
+
+        form button {
+            width: 9%;
+            border: none;
+            background: #3da1fefc;
+            text-align: center;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat">
+        <div class="title">
+            websocket
+        </div>
+        <div class="chat-cont">
+            <ul id="message">
+                <p id="message-title"></p>
+            </ul>
+            <form action="">
+                <input type="text" id="chatMess"><button>Send</button>
+            </form>
+            <ul id="user">
+                <p id="userNum"></p>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            var socket = io()
+
+            let name = prompt('请输入你的昵称：')
+            socket.emit('join', name)
+            socket.on('join', (obj) => {
+                console.log(obj)
+                $('#message-title').append($('<p>').html(`用户${obj.name}${obj.state}了聊天室`))
+                $('#user').append($('<p>').html(obj.name))
+            })
+
+            $('form').submit(function () {
+                socket.emit('chat', $('#chatMess').val()) // 把Input框中的内容提交给后台服务器
+                $('#chatMess').val('')
+                return false
+            })
+
+            // 接收后台提交过来的聊天数据内容
+            socket.on('chat', function (msg) {
+                $("#message").append($('<li>').html(`<p class="name">${msg.name}</p><p class="msg">${msg.msg}</p>`))
+            })
+        })
+    </script>
+</body>
+
+</html>
